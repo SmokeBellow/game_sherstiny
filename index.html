@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MurMyak Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background-color: #e0e0e0;
+    }
+
+    #murmyak-screen, #character-select, #gamename-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+    }
+
+    #murmyak-screen {
+      background-color: black;
+      color: white;
+      font-size: 40px;
+      transition: opacity 1s;
+    }
+
+    #gamename-screen {
+      background-color: white;
+      color: black;
+      transition: opacity 1s;
+      opacity: 0;
+    }
+
+    #gamename-screen h1 {
+      font-size: 40px;
+      font-family: Arial; /* Статичный шрифт */
+      transition: none; /* Убираем любые переходы */
+      position: absolute; /* Фиксированное позиционирование */
+      top: 200px; /* Отступ от верха */
+      bottom: 50px; /* Отступ от низа */
+      left: 50px; /* Отступ слева */
+      right: 50px; /* Отступ справа */
+      margin: 0; /* Убираем внешние отступы */
+    }
+
+    #sherstiny-text {
+      font-size: 120px; /* Размер в 1.5 раза больше */
+      font-weight: bold;
+      transition: font-family 0.15s;
+      transition: font-family 0.15s;
+    }
+
+    #character-select {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #character-select button {
+      margin: 10px;
+      font-size: 20px;
+      padding: 10px 20px;
+      cursor: pointer;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+
+    #character-select button:hover {
+      background-color: #45a049;
+    }
+
+    #character-select img {
+      margin-top: 20px;
+      width: 150px;
+      height: 150px;
+      object-fit: contain;
+    }
+
+    #level-text {
+      font-size: 30px;
+      font-weight: bold;
+      opacity: 0;
+      transition: opacity 1s;
+    }
+
+    #wool-count {
+      font-size: 20px;
+      color: #333;
+      position: fixed;
+      top: 10px;
+      left: 10px;
+    }
+
+    #message-text {
+      font-size: 30px;
+      color: #333;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      transition: opacity 3s;
+    }
+
+    #intro-text {
+      font-size: 20px;
+      margin-top: 20px;
+      color: black;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Экран MurMyak -->
+  <div id="murmyak-screen">
+    <div>
+      <h1>MurMyak Games</h1>
+      <img src="images/lapka.png" alt="Lapka" id="lapka-image" style="width: 150px; height: 150px;"/>
+    </div>
+  </div>
+
+  <!-- Экран GameName -->
+  <div id="gamename-screen">
+    <div>
+      <h1>У вас накопились</h1>
+      <h2 id="sherstiny-text">ШЕРСТИНЫ</h2>
+    </div>
+  </div>
+
+  <!-- Экран выбора персонажа -->
+  <div id="character-select">
+    <h2>С приходом весны по всему дому появляются странные серые комочки</h2>
+	 <h3>Собери их все :)</h3>
+    <div style="display: flex; justify-content: center;">
+      <button onclick="selectCharacter('masha')">Маша</button>
+      <button onclick="selectCharacter('anton')">Антон</button>
+    </div>
+    <div style="display: flex; justify-content: center; margin-top: 20px;">
+      <img id="masha-image" src="images/masha.png" alt="Masha" style="display: none; width: 150px; height: 150px;" />
+      <img id="anton-image" src="images/anton.png" alt="Anton" style="display: none; width: 150px; height: 150px;" />
+    </div>
+  </div>
+
+  <canvas id="gameCanvas"></canvas>
+
+  <div id="level-text"></div>
+  <div id="wool-count"></div>
+  <div id="message-text"></div>
+
+  <script src="game.js"></script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'936ee88988ff7b94',t:'MTc0NTc2MzA3OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
+</html>
