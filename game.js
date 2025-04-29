@@ -23,18 +23,8 @@ let showingMessage = false;
 let passedLevel10 = false;
 
 let cats = [];
-// Переменные для анимации GIF кота
-let catFrames = [];
-let catFrameDelays = [];
-let catTotalDuration = 0;
-let catStartTime = performance.now();
-
-// Загрузка GIF с помощью gifler
-gifler('images/cat_enemy.gif').frames(function (frames) {
-    catFrames = frames.map(frame => frame.getImage());
-    catFrameDelays = frames.map(frame => frame.delay * 10); // Задержка в миллисекундах
-    catTotalDuration = catFrameDelays.reduce((a, b) => a + b, 0);
-});
+let catImage = new Image();
+catImage.src = 'images/cat_enemy.png';
 
 let messagePhrases = ["Отлично!", "Шерсть собрана!", "Молодец!", "Чистота - залог уюта!"];
 
@@ -106,12 +96,13 @@ function showCharacterSelectScreen() {
 
 function selectCharacter(selected) {
   character = selected;
+  // Сбрасываем объект player до начальных значений
   player = {
     x: 100,
     y: 100,
     width: 40,
     height: 60,
-    speed: 5,
+    speed: 5, // Гарантируем, что скорость всегда сбрасывается до 5
     color: 'blue',
     img: null,
     scale: 0.4
@@ -503,36 +494,19 @@ function handleCollisions() {
 }
 
 function drawGame() {
-  // Отрисовка игрока
   ctx.drawImage(player.img, player.x, player.y, player.width, player.height);
 
-  // Отрисовка шерсти
   wools.forEach(wool => {
     ctx.drawImage(woolImage, wool.x, wool.y, 30, 30);
   });
 
-  // Отрисовка препятствий
   obstacles.forEach(o => {
     ctx.drawImage(obstacleImages[o.type], o.x, o.y, o.width, o.height);
   });
 
-  // Расчет текущего кадра анимации кота
-  let now = performance.now();
-  let elapsed = (now - catStartTime) % catTotalDuration;
-  let time = 0;
-  let currentFrame = 0;
-  for (let i = 0; i < catFrameDelays.length; i++) {
-    time += catFrameDelays[i];
-    if (elapsed < time) {
-      currentFrame = i;
-      break;
-    }
-  }
-
-  // Отрисовка котов
   cats.forEach(cat => {
-    if (cat.isVisible && catFrames.length > 0) {
-      ctx.drawImage(catFrames[currentFrame], cat.x, cat.y, cat.width, cat.height);
+    if (cat.isVisible) {
+      ctx.drawImage(catImage, cat.x, cat.y, cat.width, cat.height);
     }
   });
 }
