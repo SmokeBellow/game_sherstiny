@@ -22,6 +22,20 @@ let levelComplete = false;
 let showingMessage = false;
 let passedLevel10 = false;
 
+let cats = [];
+// Переменные для анимации GIF кота
+let catFrames = [];
+let catFrameDelays = [];
+let catTotalDuration = 0;
+let catStartTime = performance.now();
+
+// Загрузка GIF с помощью gifler
+gifler('images/cat_enemy.gif').frames(function (frames) {
+    catFrames = frames.map(frame => frame.getImage());
+    catFrameDelays = frames.map(frame => frame.delay * 10); // Задержка в миллисекундах
+    catTotalDuration = catFrameDelays.reduce((a, b) => a + b, 0);
+});
+
 let messagePhrases = ["Отлично!", "Шерсть собрана!", "Молодец!", "Чистота - залог уюта!"];
 
 const obstacleImages = {
@@ -66,19 +80,18 @@ function showGameNameScreen() {
 
   gameNameScreen.style.opacity = 1;
 
-  // Смена шрифта каждые 0.3 секунды
   const fontInterval = setInterval(() => {
     sherstinyText.style.fontFamily = fonts[fontIndex];
     fontIndex = (fontIndex + 1) % fonts.length;
-  }, 300); // Изменено на 300 мс
+  }, 300);
 
   setTimeout(() => {
-    clearInterval(fontInterval); // Останавливаем смену шрифта
+    clearInterval(fontInterval);
     gameNameScreen.style.opacity = 0;
     setTimeout(() => {
       showCharacterSelectScreen();
     }, 1000);
-  }, 5000); // Экран отображается 5 секунд
+  }, 5000);
 }
 
 function showCharacterSelectScreen() {
@@ -93,6 +106,16 @@ function showCharacterSelectScreen() {
 
 function selectCharacter(selected) {
   character = selected;
+  player = {
+    x: 100,
+    y: 100,
+    width: 40,
+    height: 60,
+    speed: 5,
+    color: 'blue',
+    img: null,
+    scale: 0.4
+  };
   const img = new Image();
   img.onload = () => {
     player.img = img;
@@ -101,6 +124,7 @@ function selectCharacter(selected) {
     player.width = img.width * player.scale;
     player.height = img.height * player.scale;
     document.getElementById('character-select').style.display = 'none';
+    currentLevel = 1;
     startGame();
   };
   
@@ -118,6 +142,43 @@ function startGame() {
   requestAnimationFrame(gameLoop);
 }
 
+function isFullyInsideScreen(x, y, width, height) {
+  return x >= 0 && x + width <= canvas.width && y >= 0 && y + height <= canvas.height;
+}
+
+function isSafeFromObstacles(x, y, width, height) {
+  return !obstacles.some(o =>
+    x < o.x + o.width &&
+    x + width > o.x &&
+    y < o.y + o.height &&
+    y + height > o.y
+  );
+}
+
+function generateCatPath() {
+  const edges = [
+    { edge: 'left', x: 0, y: () => Math.random() * canvas.height },
+    { edge: 'right', x: canvas.width - 60, y: () => Math.random() * canvas.height },
+    { edge: 'top', x: () => Math.random() * canvas.width, y: 0 },
+    { edge: 'bottom', x: () => Math.random() * canvas.width, y: canvas.height - 60 }
+  ];
+
+  const startEdgeIndex = Math.floor(Math.random() * edges.length);
+  let startEdge = edges[startEdgeIndex];
+  let startX = typeof startEdge.x === 'function' ? startEdge.x() : startEdge.x;
+  let startY = typeof startEdge.y === 'function' ? startEdge.y() : startEdge.y;
+
+  let endEdgeIndex;
+  do {
+    endEdgeIndex = Math.floor(Math.random() * edges.length);
+  } while (endEdgeIndex === startEdgeIndex);
+  let endEdge = edges[endEdgeIndex];
+  let endX = typeof endEdge.x === 'function' ? endEdge.x() : endEdge.x;
+  let endY = typeof endEdge.y === 'function' ? endEdge.y() : endEdge.y;
+
+  return { startX, startY, endX, endY };
+}
+
 function generateLevel() {
   obstacles = [];
   wools = [];
@@ -125,6 +186,59 @@ function generateLevel() {
   levelComplete = false;
   showingMessage = false;
   totalWool = 5 + currentLevel * 2;
+
+  cats = [];
+  if (currentLevel >= 5 && currentLevel <= 6) {
+    const { startX, startY, endX, endY } = generateCatPath();
+    cats.push({
+      x: startX,
+      y: startY,
+      startX: startX,
+      startY: startY,
+      endX: endX,
+      endY: endY,
+      width: 60,
+      height: 60,
+      speed: 3,
+      lastWoolDrop: Date.now(),
+      isVisible: true,
+      disappearTime: null
+    });
+  } else if (currentLevel >= 7 && currentLevel <= 8) {
+    const { startX, startY, endX, endY } = generateCatPath();
+    cats.push({
+      x: startX,
+      y: startY,
+      startX: startX,
+      startY: startY,
+      endX: endX,
+      endY: endY,
+      width: 60,
+      height: 60,
+      speed: 3,
+      lastWoolDrop: Date.now(),
+      isVisible: true,
+      disappearTime: null
+    });
+  } else if (currentLevel >= 9 && currentLevel <= 10) {
+    for (let i = 0; i < 2; i++) {
+      const { startX, startY, endX, endY } = generateCatPath();
+      cats.push({
+        x: startX,
+        y: startY,
+        startX: startX,
+        startY: startY,
+        endX: endX,
+        endY: endY,
+        width: 60,
+        height: 60,
+        speed: 3,
+        lastWoolDrop: Date.now(),
+        isVisible: true,
+        disappearTime: null
+      });
+    }
+  }
 
   let obstacleTypes = [];
   if (currentLevel <= 2) {
@@ -155,34 +269,37 @@ function generateLevel() {
     obstacles.push({ x: ox, y: oy, width: w, height: h, type });
   }
 
-  while (wools.length < totalWool) {
+  let attempts = 0;
+  const maxAttempts = 1000;
+  while (wools.length < totalWool && attempts < maxAttempts) {
     let x = Math.random() * (canvas.width - 30);
     let y = Math.random() * (canvas.height - 30);
 
-    if (x < player.width || x > canvas.width - player.width) {
-      x = Math.random() * (canvas.width - 30);
+    if (!isFullyInsideScreen(x, y, 30, 30)) {
+      attempts++;
+      continue;
     }
 
-    if (y < player.height || y > canvas.height - player.height) {
-      y = Math.random() * (canvas.height - 30);
+    if (!isSafeFromObstacles(x, y, 30, 30)) {
+      attempts++;
+      continue;
     }
 
-    const safeFromObstacles = !obstacles.some(o =>
-      x > o.x - 30 && x < o.x + o.width + 30 &&
-      y > o.y - 30 && y < o.y + o.height + 30
-    );
     const safeFromPlayer = Math.hypot(player.x - x, player.y - y) > 100;
 
-    if (safeFromObstacles && safeFromPlayer) {
+    if (safeFromPlayer) {
       wools.push({ x, y, scale: 1 });
     }
+    attempts++;
+  }
+
+  if (wools.length < totalWool) {
+    console.warn(`Не удалось разместить всю шерсть: размещено ${wools.length} из ${totalWool}`);
+    totalWool = wools.length;
   }
 
   document.getElementById('level-text').textContent = "Уровень " + currentLevel;
   document.getElementById('level-text').style.opacity = 1;
-  setTimeout(() => {
-    document.getElementById('level-text').style.opacity = 0;
-  }, 3000);
 
   updateWoolCounter();
 }
@@ -204,12 +321,85 @@ function updateWoolCounter() {
   woolCounter.textContent = `Шерсть: ${woolCollected}/${totalWool}`;
 }
 
+function updateCats() {
+  const now = Date.now();
+  const shouldDisappear = (currentLevel >= 5 && currentLevel <= 6) || (currentLevel >= 9 && currentLevel <= 10);
+  const disappearDuration = (currentLevel >= 9 && currentLevel <= 10) ? 5000 : 7000;
+
+  cats.forEach(cat => {
+    if (!cat.isVisible) {
+      if (shouldDisappear && now - cat.disappearTime >= disappearDuration) {
+        const { startX, startY, endX, endY } = generateCatPath();
+        cat.x = startX;
+        cat.y = startY;
+        cat.startX = startX;
+        cat.startY = startY;
+        cat.endX = endX;
+        cat.endY = endY;
+        cat.isVisible = true;
+        cat.disappearTime = null;
+        cat.lastWoolDrop = now;
+      }
+      return;
+    }
+
+    const dx = cat.endX - cat.startX;
+    const dy = cat.endY - cat.startY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance === 0) return;
+
+    const moveX = (dx / distance) * cat.speed;
+    const moveY = (dy / distance) * cat.speed;
+    cat.x += moveX;
+    cat.y += moveY;
+
+    const distToEnd = Math.hypot(cat.x - cat.endX, cat.y - cat.endY);
+    if (distToEnd < cat.speed) {
+      if (shouldDisappear) {
+        cat.isVisible = false;
+        cat.disappearTime = now;
+      } else {
+        const { startX, startY, endX, endY } = generateCatPath();
+        cat.x = startX;
+        cat.y = startY;
+        cat.startX = startX;
+        cat.startY = startY;
+        cat.endX = endX;
+        cat.endY = endY;
+      }
+      return;
+    }
+
+    if (now - cat.lastWoolDrop >= 2000) {
+      const woolX = cat.x + cat.width / 2;
+      const woolY = cat.y + cat.height;
+
+      if (!isFullyInsideScreen(woolX, woolY, 30, 30)) {
+        cat.lastWoolDrop = now;
+        return;
+      }
+
+      if (!isSafeFromObstacles(woolX, woolY, 30, 30)) {
+        cat.lastWoolDrop = now;
+        return;
+      }
+
+      wools.push({ x: woolX, y: woolY, scale: 1 });
+      totalWool++;
+      updateWoolCounter();
+      cat.lastWoolDrop = now;
+    }
+  });
+}
+
 function gameLoop() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   if (!levelComplete) {
     handlePlayerMovement();
     handleCollisions();
+    updateCats();
     drawGame();
   }
 
@@ -243,9 +433,10 @@ function showVictoryScreen() {
   victoryScreen.style.display = 'flex';
   victoryScreen.style.flexDirection = 'column';
   victoryScreen.style.justifyContent = 'center';
+  victoryScreen.style.alignItems = 'center';
   victoryScreen.innerHTML = `
     <h1>Победа! Вы собрали целую кошку!</h1>
-    <img src="images/win.png" alt="Win Image" style="width: 300px; height: auto; margin-top: 20px;">
+    <img src="images/win.png" alt="Win Image" style="width: 300px; height: auto;">
   `;
 
   document.body.appendChild(victoryScreen);
@@ -312,14 +503,37 @@ function handleCollisions() {
 }
 
 function drawGame() {
+  // Отрисовка игрока
   ctx.drawImage(player.img, player.x, player.y, player.width, player.height);
 
+  // Отрисовка шерсти
   wools.forEach(wool => {
     ctx.drawImage(woolImage, wool.x, wool.y, 30, 30);
   });
 
+  // Отрисовка препятствий
   obstacles.forEach(o => {
     ctx.drawImage(obstacleImages[o.type], o.x, o.y, o.width, o.height);
+  });
+
+  // Расчет текущего кадра анимации кота
+  let now = performance.now();
+  let elapsed = (now - catStartTime) % catTotalDuration;
+  let time = 0;
+  let currentFrame = 0;
+  for (let i = 0; i < catFrameDelays.length; i++) {
+    time += catFrameDelays[i];
+    if (elapsed < time) {
+      currentFrame = i;
+      break;
+    }
+  }
+
+  // Отрисовка котов
+  cats.forEach(cat => {
+    if (cat.isVisible && catFrames.length > 0) {
+      ctx.drawImage(catFrames[currentFrame], cat.x, cat.y, cat.width, cat.height);
+    }
   });
 }
 
