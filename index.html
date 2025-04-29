@@ -46,20 +46,19 @@
 
     #gamename-screen h1 {
       font-size: 40px;
-      font-family: Arial; /* Статичный шрифт */
-      transition: none; /* Убираем любые переходы */
-      position: absolute; /* Фиксированное позиционирование */
-      top: 200px; /* Отступ от верха */
-      bottom: 50px; /* Отступ от низа */
-      left: 50px; /* Отступ слева */
-      right: 50px; /* Отступ справа */
-      margin: 0; /* Убираем внешние отступы */
+      font-family: Arial;
+      transition: none;
+      position: absolute;
+      top: 200px;
+      bottom: 50px;
+      left: 50px;
+      right: 50px;
+      margin: 0;
     }
 
     #sherstiny-text {
-      font-size: 120px; /* Размер в 1.5 раза больше */
+      font-size: 120px;
       font-weight: bold;
-      transition: font-family 0.15s;
       transition: font-family 0.15s;
     }
 
@@ -92,10 +91,12 @@
     }
 
     #level-text {
-      font-size: 30px;
+      font-size: 20px;
       font-weight: bold;
-      opacity: 0;
-      transition: opacity 1s;
+      position: fixed;
+      top: 40px;
+      left: 10px;
+      color: #333;
     }
 
     #wool-count {
@@ -144,14 +145,16 @@
 
   <!-- Экран выбора персонажа -->
   <div id="character-select">
-    <h2>Что это лежит на полу? Это кошка повсюду раскидала свою шерсть.</h2>
-	 <h3>Тебе придется ее собрать :)</h3>
+    <h2>С приходом весны
+
+ по всему дому появляются странные серые комочки</h2>
+    <h3>Собери их все :)</h3>
     <div style="display: flex; justify-content: center;">
-      <button onclick="selectCharacter('masha')">Маша</button>
+      <button onclick="selectCharacter('masha')" style="margin-right: 60px;">Маша</button>
       <button onclick="selectCharacter('anton')">Антон</button>
     </div>
     <div style="display: flex; justify-content: center; margin-top: 20px;">
-      <img id="masha-image" src="images/masha.png" alt="Masha" style="display: none; width: 150px; height: 150px;margin-right: 20px;" />
+      <img id="masha-image" src="images/kr.png" alt="Masha" style="display: none; width: 150px; height: 150px;margin-right: 20px;" />
       <img id="anton-image" src="images/anton.png" alt="Anton" style="display: none; width: 150px; height: 150px;" />
     </div>
   </div>
@@ -162,7 +165,8 @@
   <div id="wool-count"></div>
   <div id="message-text"></div>
 
+  <!-- Подключение библиотеки gifler -->
+  <script src="https://unpkg.com/gifler@0.1.0/gifler.min.js"></script>
   <script src="game.js"></script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'936ee88988ff7b94',t:'MTc0NTc2MzA3OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>
